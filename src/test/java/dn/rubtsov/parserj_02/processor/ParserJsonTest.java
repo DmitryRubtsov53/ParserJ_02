@@ -1,5 +1,6 @@
 package dn.rubtsov.parserj_02.processor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dn.rubtsov.parserj_02.data.Registers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,5 +29,18 @@ ParserJson parserJson;
         // Проверяем маппинг полей 1-ого элемента списка
         assertEquals("TEST3", data.get(0).getRegisterType(), "registerType should be 'TEST3'");
         assertEquals(1000000, data.get(0).getRestIn(), "restIn should be 1000000");
+    }
+
+    @Test
+    void testParseJsonFiles_NegativeScenario_InvalidJsonFormat() throws IOException {
+        // Arrange
+        File resourcesDirectory = Paths.get("src", "test", "resources").toFile();
+        File invalidJsonFile = new File(resourcesDirectory, "Test_invalid.json");
+        try (FileWriter writer = new FileWriter(invalidJsonFile)) {
+            writer.write("This is not a valid JSON format.");
+        }
+
+        // Act and Assert
+        assertThrows(Exception.class, () -> parserJson.parseJsonFiles());
     }
 }
