@@ -1,0 +1,16 @@
+mapping:
+  message:
+    messageType: messageType
+    header: header
+    dfaRegisterPosition: dfaRegisterPosition
+  header:
+    accountingDate: accountingDate
+    productId: productId
+    messageId: messageId
+  dfaRegisterPosition:
+    productId: productId
+    accountingDate: accountingDate
+    registers: registers
+  registers:
+    registerType: registerType
+    restIn: restIn
