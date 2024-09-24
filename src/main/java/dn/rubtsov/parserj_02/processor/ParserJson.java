@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,7 @@ public class ParserJson {
         this.mappingConfiguration = mappingConfiguration;
     }
 
-    public List<Registers> parseJsonFiles() {
+    public static List<Registers> parseJsonFiles() {
         List<Registers> data = new ArrayList<>();
         File resourcesDirectory = Paths.get("src", "main", "resources").toFile();
         ObjectMapper objectMapper = new ObjectMapper();

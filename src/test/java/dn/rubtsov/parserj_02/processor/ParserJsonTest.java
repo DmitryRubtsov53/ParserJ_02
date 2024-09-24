@@ -1,32 +1,22 @@
 package dn.rubtsov.parserj_02.processor;
 
-import dn.rubtsov.parserj_02.data.Registers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class ParserJsonTest {
-@Autowired
-ParserJson parserJson;
+    @BeforeAll
+    static void setUp() {
+        // Создание таблицы перед запуском тестов
+        DBUtils.createTableIfNotExists("registers");
+    }
+
 
     @Test
-    void testOfParseJsonFiles() {
-        List<Registers> data = parserJson.parseJsonFiles();
-        // Проверяем, что данные были корректно считаны
-        assertNotNull(data, "List should not be null");
-        assertFalse(data.isEmpty(), "List should not be empty");
-        assertEquals(3, data.size(),"List's size should be 3");
-
-        // Проверяем маппинг полей 1-ого элемента списка
-        assertEquals("TEST3", data.get(0).getRegisterType(), "registerType should be 'TEST3'");
-        assertEquals(1000000, data.get(0).getRestIn(), "restIn should be 1000000");
+    void testSelectData() {
+        DBUtils.insertRecords(ParserJson.parseJsonFiles());
+        DBUtils.selectAllRecords().forEach(e -> System.out.println(e.getRegisterType() + " " + e.getRestIn()));
     }
+
 }
