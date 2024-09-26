@@ -1,5 +1,7 @@
 package dn.rubtsov.parserj_02.processor;
 
+import dn.rubtsov.parserj_02.data.Header;
+import dn.rubtsov.parserj_02.dto.MessageDB;
 import dn.rubtsov.parserj_02.data.Registers;
 
 import java.sql.*;
@@ -8,15 +10,22 @@ import java.util.List;
 
 public class DBUtils {
     public static final String URL = "jdbc:postgresql://localhost:5432/postgres";
+    //"jdbc:postgresql://postgres:5432/postgres"; - если БД только в Docker
     public static final String USER = "postgres";
     public static final String PASSWORD = "1";
+
     /**
-     Метод создания таблицы registers БД, если она не существует.
+     Метод создания таблицы message_db БД, если она не существует.
      */
     public static void createTableIfNotExists(String tableName) {
+
         String createTableSQL = "CREATE TABLE IF NOT EXISTS "+ tableName +" (" +
-                "id SERIAL PRIMARY KEY, " +
-                "register_type VARCHAR(255) NOT NULL, " +
+                "uid UUID PRIMARY KEY DEFAULT gen_random_uuid(), " +
+                "insert_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(), " +
+                "product_id VARCHAR(60) NOT NULL, " +
+                "message_id VARCHAR(60) NOT NULL, " +
+                "accounting_date VARCHAR(60) NOT NULL, " +
+                "register_type VARCHAR(60) NOT NULL, " +
                 "rest_in INTEGER NOT NULL" +
                 ");";
 
@@ -28,16 +37,20 @@ public class DBUtils {
         }
     }
     /**
-     Метод записи объектов списка Registers в таблицу БД.
+     Метод записи объектов списка MessageDB в таблицу БД.
      */
-    public static void insertRecords(List<Registers> data) {
-        String insertDataSQL = "INSERT INTO registers (register_type, rest_in) VALUES (?, ?)";
+    public static void insertRecords(List<MessageDB> data) {
+        String insertDataSQL = "INSERT INTO message_db " +
+                "(product_id, message_id, accounting_date, register_type, rest_in) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement preparedStatement = connection.prepareStatement(insertDataSQL)) {
 
-            for (Registers entry : data) {
-                preparedStatement.setString(1, entry.getRegisterType());
-                preparedStatement.setInt(2, entry.getRestIn());
+            for (MessageDB entry : data) {
+                preparedStatement.setString(1, entry.getHeader().getProductId());
+                preparedStatement.setString(2, entry.getHeader().getMessageId());
+                preparedStatement.setString(3, entry.getHeader().getAccountingDate());
+                preparedStatement.setString(4, entry.getRegisters().getRegisterType());
+                preparedStatement.setInt(5, entry.getRegisters().getRestIn());
                 preparedStatement.addBatch(); // Добавление в пакет
             }
 
@@ -50,45 +63,57 @@ public class DBUtils {
     /**
      Метод получения всех записей из таблицы БД.
      */
-    public static List<Registers> selectAllRecords() {
-        List<Registers> registersList = new ArrayList<>();
-        String selectSQL = "SELECT register_type, rest_in FROM registers";
+    public static List<MessageDB> selectAllRecords() {
+        List<MessageDB> messagesList = new ArrayList<>();
+        String selectSQL = "SELECT " +
+                "product_id, message_id, accounting_date, register_type, rest_in " +
+                "FROM message_db";
 
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement preparedStatement = connection.prepareStatement(selectSQL);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
+                String productId = resultSet.getString("product_id");
+                String messageId = resultSet.getString("message_id");
+                String accountingDate = resultSet.getString("accounting_date");
                 String registerType = resultSet.getString("register_type");
                 int restIn = resultSet.getInt("rest_in");
 
-                // Создание объекта Registers и добавление в список
+                // Создание объекта MessageDB и добавление в список
+                Header header = new Header();
+                header.setProductId(productId);
+                header.setMessageId(messageId);
+                header.setAccountingDate(accountingDate);
+
                 Registers registers = new Registers();
                 registers.setRegisterType(registerType);
                 registers.setRestIn(restIn);
-                registersList.add(registers);
+
+                MessageDB messageDB = new MessageDB();
+                messageDB.setHeader(header);
+                messageDB.setRegisters(registers);
+                messagesList.add(messageDB);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return registersList;
+        return messagesList;
     }
     /**
      Метод удаления таблицы registers из БД.
      */
-    public static void dropTableIfExists() {
-        String dropDataSQL = "DROP TABLE registers";
+    public static void dropTableIfExists(String tableName) {
+        String dropDataSQL = "DROP TABLE " + tableName;
 
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement preparedStatement = connection.prepareStatement(dropDataSQL)) {
-             preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 }
-
-
