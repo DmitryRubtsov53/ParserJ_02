@@ -21,28 +21,26 @@ public class ParserJson {
         this.mappingConfiguration = mappingConfiguration;
     }
 
-    public static List<Registers> parseJsonFiles() {
-        List<Registers> data = new ArrayList<>();
-        File resourcesDirectory = Paths.get("src", "main", "resources").toFile();
+    public static List<Registers> parseJson(String json) {
         ObjectMapper objectMapper = new ObjectMapper();
+        List<Registers> data = new ArrayList<>();
+        try {
+            Map<String, Object> jsonMap = objectMapper.readValue(json, Map.class);
 
-        for (File file : resourcesDirectory.listFiles((dir, name) -> name.endsWith(".json"))) {
-            try {
-                Map<String, Object> jsonMap = objectMapper.readValue(file, Map.class);
-
-                if (jsonMap.containsKey("dfaRegisterPosition")) {
-                    Map<String, Object> dfaRegisterPositionMap = (Map<String, Object>) jsonMap.get("dfaRegisterPosition");
-                    if (dfaRegisterPositionMap.containsKey("registers")){
-                        List<Map<String,Object>> registers = (List<Map<String,Object>>) dfaRegisterPositionMap.get("registers");
-                        for (Map<String,Object> register : registers){
-                            data.add(objectMapper.convertValue(register, dn.rubtsov.parserj_02.data.Registers.class));
-                        }
+            if (jsonMap.containsKey("dfaRegisterPosition")) {
+                Map<String, Object> dfaRegisterPositionMap = (Map<String, Object>) jsonMap.get("dfaRegisterPosition");
+                if (dfaRegisterPositionMap.containsKey("registers")){
+                    List<Map<String,Object>> registers = (List<Map<String,Object>>) dfaRegisterPositionMap.get("registers");
+                    for (Map<String,Object> register : registers){
+                        data.add(objectMapper.convertValue(register, dn.rubtsov.parserj_02.data.Registers.class));
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return data;
     }
 }
+
+//------------------------------------------------------------------------------

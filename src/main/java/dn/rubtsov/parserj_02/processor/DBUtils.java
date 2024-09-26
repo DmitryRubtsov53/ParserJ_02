@@ -10,7 +10,6 @@ public class DBUtils {
     public static final String URL = "jdbc:postgresql://localhost:5432/postgres";
     public static final String USER = "postgres";
     public static final String PASSWORD = "1";
-
     /**
      Метод создания таблицы registers БД, если она не существует.
      */
@@ -28,23 +27,21 @@ public class DBUtils {
             e.printStackTrace();
         }
     }
-
     /**
      Метод записи объектов списка Registers в таблицу БД.
      */
     public static void insertRecords(List<Registers> data) {
         String insertDataSQL = "INSERT INTO registers (register_type, rest_in) VALUES (?, ?)";
-
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement preparedStatement = connection.prepareStatement(insertDataSQL)) {
 
             for (Registers entry : data) {
                 preparedStatement.setString(1, entry.getRegisterType());
                 preparedStatement.setInt(2, entry.getRestIn());
-                preparedStatement.addBatch();
+                preparedStatement.addBatch(); // Добавление в пакет
             }
 
-            preparedStatement.executeBatch();
+            preparedStatement.executeBatch(); // Выполнение всех вставок за один раз
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -78,4 +75,20 @@ public class DBUtils {
 
         return registersList;
     }
+    /**
+     Метод удаления таблицы registers из БД.
+     */
+    public static void dropTableIfExists() {
+        String dropDataSQL = "DROP TABLE registers";
+
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement preparedStatement = connection.prepareStatement(dropDataSQL)) {
+             preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
+
+

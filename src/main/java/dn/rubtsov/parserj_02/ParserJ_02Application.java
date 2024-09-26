@@ -1,5 +1,6 @@
 package dn.rubtsov.parserj_02;
 
+import dn.rubtsov.parserj_02.processor.JsonProducer;
 import dn.rubtsov.parserj_02.processor.ParserJson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,7 +13,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class ParserJ_02Application implements CommandLineRunner {
 
     private final ParserJson parserJson;
-
+    @Autowired
+    JsonProducer jsonProducer;
     @Autowired
     public ParserJ_02Application(ParserJson parserJson) {
         this.parserJson = parserJson;
