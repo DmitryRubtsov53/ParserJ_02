@@ -27,6 +27,7 @@ public class DBUtils {
                 "accounting_date VARCHAR(60) NOT NULL, " +
                 "register_type VARCHAR(60) NOT NULL, " +
                 "rest_in INTEGER NOT NULL" +
+                "dispatchStatus INTEGER DEFAULT 0" +
                 ");";
 
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
@@ -116,4 +117,54 @@ public class DBUtils {
             e.printStackTrace();
         }
     }
+    /**
+     * Метод для получения первой записи с dispatchStatus = 0
+     * и обновления dispatchStatus на 1.
+     */
+    public static MessageDB getAndUpdateFirstRecordWithDispatchStatus() {
+        MessageDB messageDB = null;
+        String selectSQL = "SELECT product_id, message_id, accounting_date, register_type, rest_in " +
+                "FROM message_db WHERE dispatchStatus = 0 LIMIT 1";
+        String updateSQL = "UPDATE message_db SET dispatchStatus = 1 WHERE register_type = ? AND rest_in = ?";
+
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement selectStatement = connection.prepareStatement(selectSQL);
+             PreparedStatement updateStatement = connection.prepareStatement(updateSQL);
+             ResultSet resultSet = selectStatement.executeQuery()) {
+
+            // Выборка первой записи
+            if (resultSet.next()) {
+                String productId = resultSet.getString("product_id");
+                String messageId = resultSet.getString("message_id");
+                String accountingDate = resultSet.getString("accounting_date");
+                String registerType = resultSet.getString("register_type");
+                int restIn = resultSet.getInt("rest_in");
+
+                // Создание объекта MessageDB
+                Header header = new Header();
+                header.setProductId(productId);
+                header.setMessageId(messageId);
+                header.setAccountingDate(accountingDate);
+
+                Registers registers = new Registers();
+                registers.setRegisterType(registerType);
+                registers.setRestIn(restIn);
+
+                messageDB = new MessageDB();
+                messageDB.setHeader(header);
+                messageDB.setRegisters(registers);
+
+                // Обновление значения dispatchStatus
+                updateStatement.setString(1, registerType);
+                updateStatement.setInt(2,restIn);
+                updateStatement.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return messageDB;
+    }
+
 }
