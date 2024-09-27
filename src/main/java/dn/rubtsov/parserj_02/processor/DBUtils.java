@@ -3,6 +3,8 @@ package dn.rubtsov.parserj_02.processor;
 import dn.rubtsov.parserj_02.data.Header;
 import dn.rubtsov.parserj_02.dto.MessageDB;
 import dn.rubtsov.parserj_02.data.Registers;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,7 +14,8 @@ public class DBUtils {
     public static final String URL = "jdbc:postgresql://localhost:5432/postgres";
     //"jdbc:postgresql://postgres:5432/postgres"; - если БД только в Docker
     public static final String USER = "postgres";
-    public static final String PASSWORD = "1";
+    public static final String PASSWORD = "1"; //"root";
+
 
     /**
      Метод создания таблицы message_db БД, если она не существует.
@@ -26,7 +29,7 @@ public class DBUtils {
                 "message_id VARCHAR(60) NOT NULL, " +
                 "accounting_date VARCHAR(60) NOT NULL, " +
                 "register_type VARCHAR(60) NOT NULL, " +
-                "rest_in INTEGER NOT NULL" +
+                "rest_in INTEGER NOT NULL," +
                 "dispatchStatus INTEGER DEFAULT 0" +
                 ");";
 
@@ -61,6 +64,8 @@ public class DBUtils {
             e.printStackTrace();
         }
     }
+
+
     /**
      Метод получения всех записей из таблицы БД.
      */
@@ -162,6 +167,12 @@ public class DBUtils {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            try {
+                System.out.println("Записей нет,  ожидаем");
+                Thread.sleep(1000 * 10);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
         }
 
         return messageDB;

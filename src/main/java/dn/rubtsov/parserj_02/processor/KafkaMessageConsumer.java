@@ -8,6 +8,7 @@ public class KafkaMessageConsumer {
 
     @KafkaListener(topics = "testJson", groupId = "test_groupId")
     public void consume(String message) {
-        DBUtils.insertRecords(ParserJson.parseJson(message));
+
+        //DBUtils.insertRecords(ParserJson.parseJson(message));
     }
 }
